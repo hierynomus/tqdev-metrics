@@ -20,14 +20,7 @@
  */
 package com.tqdev.metrics.jetty;
 
-import java.io.IOException;
-
-import javax.servlet.AsyncEvent;
-import javax.servlet.AsyncListener;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import com.tqdev.metrics.core.MetricRegistry;
 import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.server.AsyncContextState;
 import org.eclipse.jetty.server.HttpChannelState;
@@ -35,8 +28,12 @@ import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.HandlerWrapper;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 
-import com.tqdev.metrics.core.Gauge;
-import com.tqdev.metrics.core.MetricRegistry;
+import javax.servlet.AsyncEvent;
+import javax.servlet.AsyncListener;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 /**
  * An instrumented Jetty handler wrapper to keep track of total duration and
@@ -50,7 +47,7 @@ public class InstrumentedHandler extends HandlerWrapper {
 	/**
 	 * The content types for which the path is grouped, e.g: "json|xml|html|csv"
 	 */
-	public final String contentTypes;
+	private final String contentTypes;
 
 	/**
 	 * Instantiates a new instrumented handler.
@@ -127,15 +124,15 @@ public class InstrumentedHandler extends HandlerWrapper {
 		registry.set("jetty.Aggregated.Invocations", "dispatches", 0);
 		registry.set("jetty.Aggregated.Durations", "dispatches", 0);
 
-		registry.set("jetty.Thread.Gauges", "threads", (Gauge) () -> getServer().getThreadPool().getThreads());
-		registry.set("jetty.Thread.Gauges", "idle-threads", (Gauge) () -> getServer().getThreadPool().getIdleThreads());
+		registry.set("jetty.Thread.Gauges", "threads", () -> getServer().getThreadPool().getThreads());
+		registry.set("jetty.Thread.Gauges", "idle-threads", () -> getServer().getThreadPool().getIdleThreads());
 		if (getServer().getThreadPool() instanceof QueuedThreadPool) {
 			registry.set("jetty.Thread.Gauges", "busy-threads",
-					(Gauge) () -> ((QueuedThreadPool) getServer().getThreadPool()).getBusyThreads());
+					() -> ((QueuedThreadPool) getServer().getThreadPool()).getBusyThreads());
 			registry.set("jetty.Thread.Gauges", "min-threads",
-					(Gauge) () -> ((QueuedThreadPool) getServer().getThreadPool()).getMinThreads());
+					() -> ((QueuedThreadPool) getServer().getThreadPool()).getMinThreads());
 			registry.set("jetty.Thread.Gauges", "max-threads",
-					(Gauge) () -> ((QueuedThreadPool) getServer().getThreadPool()).getMaxThreads());
+					() -> ((QueuedThreadPool) getServer().getThreadPool()).getMaxThreads());
 		}
 	}
 
@@ -247,7 +244,7 @@ public class InstrumentedHandler extends HandlerWrapper {
 			}
 		}
 		String path = String.join("/", parts);
-		if (path == "") {
+		if ("".equals(path)) {
 			path = "/";
 		}
 		return path;

@@ -20,6 +20,7 @@
  */
 package com.tqdev.metrics.core;
 
+import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.LongAdder;
 
@@ -127,11 +128,9 @@ public class MetricRegistry {
 	 * @param type
 	 *            the type
 	 * @return the keys
-	 * @throws NullPointerException
-	 *             the null pointer exception
 	 */
-	public Iterable<String> getKeys(String type) throws NullPointerException {
-		return values.get(type).keySet();
+	public Iterable<String> getKeys(String type) {
+		return values.containsKey(type) ? values.get(type).keySet() : Collections.emptySet();
 	}
 
 	/**
@@ -142,11 +141,9 @@ public class MetricRegistry {
 	 * @param key
 	 *            the key
 	 * @return true, if successful
-	 * @throws NullPointerException
-	 *             the null pointer exception
 	 */
-	public boolean has(String type, String key) throws NullPointerException {
-		return values.get(type).containsKey(key);
+	public boolean has(String type, String key) {
+		return values.containsKey(type) && values.get(type).containsKey(key);
 	}
 
 	/**
@@ -157,11 +154,9 @@ public class MetricRegistry {
 	 * @param key
 	 *            the key
 	 * @return the long
-	 * @throws NullPointerException
-	 *             the null pointer exception
 	 */
-	public long get(String type, String key) throws NullPointerException {
-		Object o = values.get(type).get(key);
+	public long get(String type, String key) {
+		Object o = values.containsKey(type) ? values.get(type).get(key) : null;
 		if (o instanceof LongAdder) {
 			return ((LongAdder) o).sum();
 		} else if (o instanceof Gauge) {
